@@ -132,15 +132,17 @@ export class SceneManager {
 
     // 2. RENDERIZAÇÃO DO TELESCÓPIO DA TERRA (Visão da Terra)
     if (this.telescopeRenderer) {
-      // Oculta temporariamente os guias de raios solares e linha da órbita
+      // Oculta temporariamente os guias de raios solares, linha da órbita e o corpo do Sol (para não vazar no fundo da Lua Nova)
       this.lighting.beamGroup.visible = false;
       this.bodies.orbitLine.visible = false;
+      this.bodies.sunGroup.visible = false;
 
       this.telescopeRenderer.render(this.scene, this.earthCamera);
 
-      // Restaura visibilidade
+      // Restaura visibilidade para o próximo frame da câmera espacial
       this.lighting.beamGroup.visible = true;
       this.bodies.orbitLine.visible = true;
+      this.bodies.sunGroup.visible = true;
     }
   }
 }
