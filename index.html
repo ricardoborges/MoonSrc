@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratório Espacial da Lua 3D - Descubra as Fases da Lua!</title>
+  <meta name="description" content="Simulador 3D interativo do sistema Sol, Terra e Lua para crianças aprenderem as fases da Lua de forma divertida e visual." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Canvas 3D Principal (Three.js) -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Topo / HUD de Controle -->
+    <header class="hud-header">
+      <div class="brand">
+        <span class="brand-icon">🚀</span>
+        <div class="brand-text">
+          <h1 class="brand-title">Laboratório da Lua 3D</h1>
+          <p class="brand-subtitle">Sol • Terra • Lua — Por que a Lua muda no céu?</p>
+        </div>
+      </div>
+
+      <!-- Controles Principais de Simulação -->
+      <div class="simulation-controls">
+        <button id="btn-play-pause" class="btn-primary" aria-label="Reproduzir ou pausar órbita">
+          <span class="icon" id="play-pause-icon">⏸️</span>
+          <span id="play-pause-text">Pausar</span>
+        </button>
+
+        <div class="speed-selector" role="group" aria-label="Velocidade da órbita">
+          <button class="btn-speed" data-speed="0.5">0.5x</button>
+          <button class="btn-speed active" data-speed="1.0">1x</button>
+          <button class="btn-speed" data-speed="2.5">2.5x</button>
+        </div>
+
+        <button id="btn-reset" class="btn-secondary" title="Voltar ao início da Lua Nova">
+          <span>🔄 Reiniciar</span>
+        </button>
+      </div>
+
+      <!-- Atalhos de Câmera -->
+      <div class="camera-controls">
+        <span class="control-label">Focar em:</span>
+        <button class="btn-camera active" data-target="system">🌌 Sistema Todo</button>
+        <button class="btn-camera" data-target="earth-moon">🌍 Terra e Lua</button>
+        <button class="btn-camera" data-target="moon">🌕 Lua</button>
+      </div>
+    </header>
+
+    <!-- Visor Telescópio "Como Vemos da Terra" (Visão Dupla) -->
+    <aside class="earth-view-widget" id="earth-view-widget">
+      <div class="widget-header">
+        <div class="widget-title-group">
+          <span class="telescope-icon">🔭</span>
+          <span class="widget-title">Visão da Terra</span>
+        </div>
+        <span class="illumination-badge" id="illumination-badge">0% Iluminada</span>
+      </div>
+
+      <div class="telescope-lens-frame">
+        <div class="telescope-crosshair"></div>
+        <div id="telescope-canvas-anchor" class="telescope-viewport">
+          <!-- O Three.js renderizará a câmera da Terra aqui -->
+        </div>
+        <div class="telescope-glare"></div>
+      </div>
+
+      <div class="telescope-footer">
+        <p class="earth-pov-tag" id="earth-pov-tag">Você está olhando para o céu noturno da Terra!</p>
+      </div>
+    </aside>
+
+    <!-- Dica de Navegação 3D -->
+    <div class="orbit-hint" id="orbit-hint">
+      <span>🖱️ Clique e arraste para girar a visão no espaço • Use a roda do mouse para dar zoom</span>
+    </div>
+
+    <!-- Barra Inferior: Régua das 8 Fases e Linha do Tempo -->
+    <footer class="hud-footer">
+      <!-- Seletor Rápido das 8 Fases -->
+      <div class="phases-shelf" id="phases-shelf" role="tablist" aria-label="As 8 Fases da Lua">
+        <!-- Preenchido dinamicamente via JS com as 8 fases -->
+      </div>
+
+      <!-- Slider Contínuo do Ciclo Lunar -->
+      <div class="timeline-container">
+        <div class="timeline-meta">
+          <div class="phase-highlight">
+            <span class="phase-current-icon" id="current-phase-icon">🌑</span>
+            <span class="phase-current-name" id="current-phase-name">Lua Nova</span>
+          </div>
+          <div class="cycle-day-counter">
+            <span id="cycle-day-value">Dia 0.0</span> / 29.5 dias (1 Mês Lunar)
+          </div>
+        </div>
+        <div class="slider-wrapper">
+          <input type="range" id="cycle-slider" min="0" max="29.53" step="0.05" value="0" aria-label="Dia do ciclo lunar" />
+        </div>
+      </div>
+
+      <!-- Card Pedagógico para Crianças (6 a 10 anos) -->
+      <div class="educational-card" id="educational-card">
+        <div class="card-badge" id="card-badge">✨ Descobrindo o Céu</div>
+        <div class="card-content">
+          <div class="card-col explanation-col">
+            <h2 class="card-section-title">O que está acontecendo?</h2>
+            <p id="phase-explanation" class="card-text">Carregando explicação...</p>
+          </div>
+          <div class="card-col tip-col">
+            <h2 class="card-section-title">💡 Dica do Astrônomo Mirim</h2>
+            <p id="phase-tip" class="card-text">Dica...</p>
+          </div>
+          <div class="card-col fun-fact-col">
+            <h2 class="card-section-title">🚀 Curiosidade Espacial</h2>
+            <p id="phase-fun-fact" class="card-text">Curiosidade...</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
