@@ -8,7 +8,7 @@ import { setupEarthViewHUD } from './ui/earthViewHUD.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('webgl-canvas');
-  const telescopeAnchor = document.getElementById('telescope-canvas-anchor');
+  const telescopeCanvas = document.getElementById('telescope-canvas');
   const orbitHintEl = document.getElementById('orbit-hint');
 
   if (!canvas) {
@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // 1. Inicializa o motor 3D
-  const sceneManager = new SceneManager(canvas, telescopeAnchor);
+  const sceneManager = new SceneManager(canvas, telescopeCanvas);
 
   // 2. Estado da Simulação
   let currentAngle = 0; // 0 = Lua Nova

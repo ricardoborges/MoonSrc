@@ -4,14 +4,14 @@ import { createLighting } from './lighting.js';
 import { createCameras, updateEarthCamera } from './cameras.js';
 
 export class SceneManager {
-  constructor(canvasElement, telescopeAnchorElement) {
+  constructor(canvasElement, telescopeCanvasElement) {
     this.canvas = canvasElement;
-    this.telescopeAnchor = telescopeAnchorElement;
+    this.telescopeCanvas = telescopeCanvasElement;
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x050711);
 
-    // Renderizador WebGL
+    // Renderizador WebGL Principal
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
@@ -21,6 +21,18 @@ export class SceneManager {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.1;
+
+    // Renderizador WebGL Dedicado para o Telescópio (Visão da Terra)
+    if (this.telescopeCanvas) {
+      this.telescopeRenderer = new THREE.WebGLRenderer({
+        canvas: this.telescopeCanvas,
+        antialias: true
+      });
+      this.telescopeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.telescopeRenderer.setSize(190, 190);
+      this.telescopeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.telescopeRenderer.toneMappingExposure = 1.1;
+    }
 
     // Inicialização de Corpos Celestes e Luzes
     this.bodies = createCelestialBodies();
@@ -116,40 +128,19 @@ export class SceneManager {
     const height = this.canvas.clientHeight;
 
     // 1. RENDERIZAÇÃO DO ESPAÇO PRINCIPAL (Viewport Total)
-    this.renderer.setScissorTest(false);
-    this.renderer.setViewport(0, 0, width, height);
     this.renderer.render(this.scene, this.mainCamera);
 
-    // 2. RENDERIZAÇÃO DO VIEWPORT DO TELESCÓPIO DA TERRA (Picture-in-Picture)
-    if (this.telescopeAnchor) {
-      const rect = this.telescopeAnchor.getBoundingClientRect();
+    // 2. RENDERIZAÇÃO DO TELESCÓPIO DA TERRA (Visão da Terra)
+    if (this.telescopeRenderer) {
+      // Oculta temporariamente os guias de raios solares e linha da órbita
+      this.lighting.beamGroup.visible = false;
+      this.bodies.orbitLine.visible = false;
 
-      // Verifica se o elemento âncora é visível
-      if (rect.width > 0 && rect.height > 0) {
-        // Conversão de coordenadas DOM para coordenadas de Scissor do WebGL (Y invertido)
-        const scissorX = Math.floor(rect.left);
-        const scissorY = Math.floor(height - rect.bottom);
-        const scissorWidth = Math.floor(rect.width);
-        const scissorHeight = Math.floor(rect.height);
+      this.telescopeRenderer.render(this.scene, this.earthCamera);
 
-        this.earthCamera.aspect = scissorWidth / scissorHeight;
-        this.earthCamera.updateProjectionMatrix();
-
-        // Oculta temporariamente os raios solares e a linha de órbita para visão limpa do telescópio
-        this.lighting.beamGroup.visible = false;
-        this.bodies.orbitLine.visible = false;
-
-        this.renderer.setScissorTest(true);
-        this.renderer.setScissor(scissorX, scissorY, scissorWidth, scissorHeight);
-        this.renderer.setViewport(scissorX, scissorY, scissorWidth, scissorHeight);
-
-        this.renderer.render(this.scene, this.earthCamera);
-
-        // Restaura a visibilidade dos guias para o próximo frame da câmera espacial
-        this.lighting.beamGroup.visible = true;
-        this.bodies.orbitLine.visible = true;
-        this.renderer.setScissorTest(false);
-      }
+      // Restaura visibilidade
+      this.lighting.beamGroup.visible = true;
+      this.bodies.orbitLine.visible = true;
     }
   }
 }

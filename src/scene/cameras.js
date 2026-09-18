@@ -47,6 +47,6 @@ export function updateEarthCamera(earthCamera, moonPosition) {
   const surfacePos = new THREE.Vector3().copy(EARTH_POSITION).addScaledVector(dir, EARTH_RADIUS + 0.1);
 
   earthCamera.position.copy(surfacePos);
-  earthCamera.lookAt(moonPosition);
   earthCamera.up.set(0, 1, 0);
+  earthCamera.lookAt(moonPosition);
 }
