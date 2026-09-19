@@ -25,7 +25,9 @@ export function createLighting(sunPosition) {
   const ambientLight = new THREE.AmbientLight(0x222638, 0.35);
   group.add(ambientLight);
 
-  // Raios solares didáticos (linhas pontilhadas brilhantes indicando a direção dos raios de luz)
+  // Raios solares didáticos (linhas pontilhadas indicando a direção da luz).
+  // Ficam em coordenadas LOCAIS ao Sol: quem os posiciona é o pivô da translação,
+  // assim eles continuam apontando para a Terra quando ela dá a volta.
   const beamGroup = new THREE.Group();
   beamGroup.name = 'SunBeams';
   const beamMaterial = new THREE.LineDashedMaterial({
@@ -40,15 +42,15 @@ export function createLighting(sunPosition) {
   const beamOffsets = [-6, -3, 0, 3, 6];
   beamOffsets.forEach(offsetZ => {
     const points = [
-      new THREE.Vector3(sunPosition.x + 3.5, 0, offsetZ),
-      new THREE.Vector3(14, 0, offsetZ)
+      new THREE.Vector3(3.5, 0, offsetZ),
+      new THREE.Vector3(sunPosition.length() + 14, 0, offsetZ)
     ];
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const line = new THREE.Line(geometry, beamMaterial);
     line.computeLineDistances();
     beamGroup.add(line);
   });
-  group.add(beamGroup);
+  // beamGroup NÃO entra no grupo de luzes: o SceneManager o pendura no pivô do Sol
 
   return {
     group,

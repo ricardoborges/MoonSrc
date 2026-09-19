@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import { radiusFactor } from '../simulation/earthOrbit.js';
+import {
+  radiusFactor as moonRadiusFactor,
+  INCLINATION_DEGREES as MOON_INCLINATION_DEGREES
+} from '../simulation/moonOrbit.js';
 import {
   createSunTexture,
   createEarthTexture,
@@ -6,12 +11,33 @@ import {
   createSunGlowTexture
 } from '../utils/proceduralTextures.js';
 
-export const SUN_POSITION = new THREE.Vector3(-28, 0, 0);
+/** Semieixo maior da órbita da Terra, em unidades da cena (equivale a 1 UA) */
+export const EARTH_ORBIT_SEMI_MAJOR = 28;
+/** Distância Sol-Terra no periélio: a(1 - e), o ponto de partida da simulação */
+export const EARTH_PERIHELION_DISTANCE = EARTH_ORBIT_SEMI_MAJOR * radiusFactor(0);
+/** O Sol fica em um FOCO da elipse, não no centro — por isso a distância do periélio */
+export const SUN_POSITION = new THREE.Vector3(-EARTH_PERIHELION_DISTANCE, 0, 0);
+/** Posição da Terra DENTRO do sistema Terra-Lua (o grupo é que se move ao redor do Sol) */
 export const EARTH_POSITION = new THREE.Vector3(0, 0, 0);
-export const MOON_ORBIT_RADIUS = 10.5;
+/** Semieixo maior da órbita da Lua, em unidades da cena */
+export const MOON_ORBIT_SEMI_MAJOR = 10.5;
 export const SUN_RADIUS = 3.6;
 export const EARTH_RADIUS = 2.2;
 export const MOON_RADIUS = 0.75;
+
+/**
+ * Posição da Lua DENTRO do plano orbital (grupo moonOrbitTilt), para um ângulo
+ * medido no referencial fixo da órbita. A Terra fica no foco da elipse, então a
+ * distância muda com o ângulo: perto no perigeu, longe no apogeu.
+ * @param {number} orbitAngle
+ * @param {THREE.Vector3} [target] vetor reaproveitado (evita alocar por quadro)
+ * @returns {THREE.Vector3}
+ */
+export function moonOrbitPosition(orbitAngle, target = new THREE.Vector3()) {
+  const r = MOON_ORBIT_SEMI_MAJOR * moonRadiusFactor(orbitAngle);
+  // Em ângulo 0 a Lua fica entre o Sol (-x) e a Terra (origem): é a Lua Nova
+  return target.set(-r * Math.cos(orbitAngle), 0, r * Math.sin(orbitAngle));
+}
 
 /**
  * Constrói todos os corpos celestes do sistema didático
@@ -49,6 +75,22 @@ export function createCelestialBodies() {
 
   root.add(sunGroup);
 
+  // 1b. PIVÔ DA TRANSLAÇÃO
+  // Todo o sistema Terra-Lua vive dentro de um grupo girado em torno do Sol.
+  // Assim, ligar a translação não muda nada na matemática das fases: dentro
+  // desse grupo o Sol continua sempre na direção -x.
+  const sunPivot = new THREE.Group();
+  sunPivot.name = 'SunPivot';
+  sunPivot.position.copy(SUN_POSITION);
+  root.add(sunPivot);
+
+  const earthSystem = new THREE.Group();
+  earthSystem.name = 'EarthSystem';
+  // No periélio (ângulo 0) a Terra nasce exatamente na origem do mundo.
+  // O SceneManager reescreve esse x a cada quadro seguindo r(theta).
+  earthSystem.position.set(EARTH_PERIHELION_DISTANCE, 0, 0);
+  sunPivot.add(earthSystem);
+
   // 2. TERRA (No centro, com inclinação axial e atmosfera sutil)
   const earthGroup = new THREE.Group();
   earthGroup.position.copy(EARTH_POSITION);
@@ -81,20 +123,34 @@ export function createCelestialBodies() {
   earthAxisGroup.add(atmosMesh);
 
   earthGroup.add(earthAxisGroup);
-  root.add(earthGroup);
+  earthSystem.add(earthGroup);
 
-  // 3. ÓRBITA DA LUA (Trajetória circular didática pontilhada)
-  const orbitCurve = new THREE.EllipseCurve(
-    0, 0,
-    MOON_ORBIT_RADIUS, MOON_ORBIT_RADIUS,
-    0, 2 * Math.PI,
-    false,
-    0
-  );
-  const orbitPoints = orbitCurve.getPoints(128);
-  const orbitGeo = new THREE.BufferGeometry().setFromPoints(
-    orbitPoints.map(p => new THREE.Vector3(p.x, 0, p.y))
-  );
+  // 3. PLANO ORBITAL DA LUA (dois grupos aninhados, cada um com um papel)
+  //
+  //  - moonOrbitPlane: o SceneManager cancela nele a translação da Terra, de
+  //    modo que a linha dos nodos fique PARADA no espaço, como na natureza.
+  //    É isso que faz as temporadas de eclipse acontecerem duas vezes por ano
+  //    em vez de todo mês.
+  //  - moonOrbitTilt: inclina o plano em 5,14° em relação ao plano Terra-Sol.
+  const moonOrbitPlane = new THREE.Group();
+  moonOrbitPlane.name = 'MoonOrbitPlane';
+  earthSystem.add(moonOrbitPlane);
+
+  const moonOrbitTilt = new THREE.Group();
+  moonOrbitTilt.name = 'MoonOrbitTilt';
+  // Inclinação em torno de Z: os nodos (onde a órbita cruza o plano Terra-Sol)
+  // ficam no eixo Z, perpendiculares à direção do Sol. A simulação começa,
+  // portanto, num mês SEM eclipses: na Lua Nova a Lua passa por baixo do Sol.
+  moonOrbitTilt.rotation.z = THREE.MathUtils.degToRad(MOON_INCLINATION_DEGREES);
+  moonOrbitPlane.add(moonOrbitTilt);
+
+  // 3b. ÓRBITA DA LUA (elipse pontilhada com a Terra em um dos focos)
+  const MOON_ORBIT_SEGMENTS = 160;
+  const orbitPoints = [];
+  for (let i = 0; i <= MOON_ORBIT_SEGMENTS; i++) {
+    orbitPoints.push(moonOrbitPosition((i / MOON_ORBIT_SEGMENTS) * Math.PI * 2));
+  }
+  const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPoints);
   const orbitMat = new THREE.LineDashedMaterial({
     color: 0x64b5f6,
     opacity: 0.45,
@@ -104,7 +160,7 @@ export function createCelestialBodies() {
   });
   const orbitLine = new THREE.Line(orbitGeo, orbitMat);
   orbitLine.computeLineDistances();
-  root.add(orbitLine);
+  moonOrbitTilt.add(orbitLine);
 
   // 4. LUA
   const moonGeo = new THREE.SphereGeometry(MOON_RADIUS, 48, 48);
@@ -117,9 +173,34 @@ export function createCelestialBodies() {
   const moonMesh = new THREE.Mesh(moonGeo, moonMat);
   moonMesh.name = 'Moon';
 
-  // Posição inicial da Lua (na Lua Nova: x = -MOON_ORBIT_RADIUS, z = 0)
-  moonMesh.position.set(-MOON_ORBIT_RADIUS, 0, 0);
-  root.add(moonMesh);
+  // Posição inicial da Lua (Lua Nova, ângulo 0)
+  moonOrbitPosition(0, moonMesh.position);
+  moonOrbitTilt.add(moonMesh);
+
+  // 4b. ÓRBITA DA TERRA (só aparece quando a translação é ligada)
+  // Elipse de Kepler traçada pela fórmula polar r(theta), com o Sol no foco.
+  // Como e = 0.0167, o desenho sai quase idêntico a um círculo — e é exatamente
+  // assim que a órbita real é: a "elipse bem esticada" dos livros é um exagero.
+  const EARTH_ORBIT_SEGMENTS = 240;
+  const earthOrbitPoints = [];
+  for (let i = 0; i <= EARTH_ORBIT_SEGMENTS; i++) {
+    const theta = (i / EARTH_ORBIT_SEGMENTS) * Math.PI * 2;
+    const r = EARTH_ORBIT_SEMI_MAJOR * radiusFactor(theta);
+    // O pivô gira em torno de Y: o ângulo theta cresce de +x na direção de -z
+    earthOrbitPoints.push(new THREE.Vector3(r * Math.cos(theta), 0, -r * Math.sin(theta)));
+  }
+  const earthOrbitGeo = new THREE.BufferGeometry().setFromPoints(earthOrbitPoints);
+  const earthOrbitLine = new THREE.Line(earthOrbitGeo, new THREE.LineDashedMaterial({
+    color: 0xfbbf24,
+    opacity: 0.35,
+    transparent: true,
+    dashSize: 1.2,
+    gapSize: 0.9
+  }));
+  earthOrbitLine.computeLineDistances();
+  earthOrbitLine.position.copy(SUN_POSITION);
+  earthOrbitLine.visible = false;
+  root.add(earthOrbitLine);
 
   // 5. CAMPO ESTELAR PROFUNDO (Stars Background)
   const starsGeo = new THREE.BufferGeometry();
@@ -167,10 +248,16 @@ export function createCelestialBodies() {
     root,
     sunGroup,
     sunMesh,
+    sunPivot,
+    earthSystem,
     earthGroup,
+    earthAxisGroup,
     earthMesh,
+    moonOrbitPlane,
+    moonOrbitTilt,
     moonMesh,
     orbitLine,
+    earthOrbitLine,
     starField
   };
 }

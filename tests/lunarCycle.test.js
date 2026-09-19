@@ -12,7 +12,7 @@ describe('Simulação do Ciclo Lunar', () => {
   it('deve identificar a Lua Nova em 0 radianos (0 graus)', () => {
     const phase = calculatePhase(0);
     expect(phase.phaseIndex).toBe(0);
-    expect(phase.phaseName).toBe('Lua Nova');
+    expect(phase.phaseKey).toBe('new');
     expect(phase.illuminatedFraction).toBeCloseTo(0, 1);
     expect(phase.day).toBeCloseTo(0, 1);
   });
@@ -20,7 +20,7 @@ describe('Simulação do Ciclo Lunar', () => {
   it('deve identificar a Crescente Côncava em PI/4 radianos (45 graus)', () => {
     const phase = calculatePhase(Math.PI / 4);
     expect(phase.phaseIndex).toBe(1);
-    expect(phase.phaseName).toBe('Crescente Côncava');
+    expect(phase.phaseKey).toBe('waxingCrescent');
     expect(phase.illuminatedFraction).toBeGreaterThan(0);
     expect(phase.illuminatedFraction).toBeLessThan(0.5);
   });
@@ -28,14 +28,14 @@ describe('Simulação do Ciclo Lunar', () => {
   it('deve identificar o Quarto Crescente em PI/2 radianos (90 graus)', () => {
     const phase = calculatePhase(Math.PI / 2);
     expect(phase.phaseIndex).toBe(2);
-    expect(phase.phaseName).toBe('Quarto Crescente');
+    expect(phase.phaseKey).toBe('firstQuarter');
     expect(phase.illuminatedFraction).toBeCloseTo(0.5, 1);
   });
 
   it('deve identificar a Gibosa Crescente em 3*PI/4 radianos (135 graus)', () => {
     const phase = calculatePhase((3 * Math.PI) / 4);
     expect(phase.phaseIndex).toBe(3);
-    expect(phase.phaseName).toBe('Crescente Gibosa');
+    expect(phase.phaseKey).toBe('waxingGibbous');
     expect(phase.illuminatedFraction).toBeGreaterThan(0.5);
     expect(phase.illuminatedFraction).toBeLessThan(1);
   });
@@ -43,7 +43,7 @@ describe('Simulação do Ciclo Lunar', () => {
   it('deve identificar a Lua Cheia em PI radianos (180 graus)', () => {
     const phase = calculatePhase(Math.PI);
     expect(phase.phaseIndex).toBe(4);
-    expect(phase.phaseName).toBe('Lua Cheia');
+    expect(phase.phaseKey).toBe('full');
     expect(phase.illuminatedFraction).toBeCloseTo(1, 1);
     expect(phase.day).toBeCloseTo(14.76, 1);
   });
@@ -51,7 +51,7 @@ describe('Simulação do Ciclo Lunar', () => {
   it('deve identificar a Gibosa Minguante em 5*PI/4 radianos (225 graus)', () => {
     const phase = calculatePhase((5 * Math.PI) / 4);
     expect(phase.phaseIndex).toBe(5);
-    expect(phase.phaseName).toBe('Gibosa Minguante');
+    expect(phase.phaseKey).toBe('waningGibbous');
     expect(phase.illuminatedFraction).toBeGreaterThan(0.5);
     expect(phase.illuminatedFraction).toBeLessThan(1);
   });
@@ -59,14 +59,14 @@ describe('Simulação do Ciclo Lunar', () => {
   it('deve identificar o Quarto Minguante em 3*PI/2 radianos (270 graus)', () => {
     const phase = calculatePhase((3 * Math.PI) / 2);
     expect(phase.phaseIndex).toBe(6);
-    expect(phase.phaseName).toBe('Quarto Minguante');
+    expect(phase.phaseKey).toBe('lastQuarter');
     expect(phase.illuminatedFraction).toBeCloseTo(0.5, 1);
   });
 
   it('deve identificar a Minguante Côncava em 7*PI/4 radianos (315 graus)', () => {
     const phase = calculatePhase((7 * Math.PI) / 4);
     expect(phase.phaseIndex).toBe(7);
-    expect(phase.phaseName).toBe('Minguante Côncava');
+    expect(phase.phaseKey).toBe('waningCrescent');
     expect(phase.illuminatedFraction).toBeGreaterThan(0);
     expect(phase.illuminatedFraction).toBeLessThan(0.5);
   });
@@ -76,7 +76,8 @@ describe('Simulação do Ciclo Lunar', () => {
     for (let i = 0; i < 8; i++) {
       const phase = getPhaseByIndex(i);
       expect(phase).toBeDefined();
-      expect(phase.name).toBeTruthy();
+      expect(phase.key).toBeTruthy();
+      expect(phase.icon).toBeTruthy();
       expect(phase.targetAngle).toBeDefined();
       expect(phase.targetDay).toBeDefined();
     }

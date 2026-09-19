@@ -1,99 +1,73 @@
 /**
  * Módulo de Simulação do Ciclo Lunar
  * Calcula posições orbitais, fases da lua, dias decorridos e iluminação aparente.
+ *
+ * Este módulo é independente de idioma: cada fase carrega uma `key` e os textos
+ * ficam nos dicionários (src/i18n). A interface traduz na hora de exibir.
  */
 
 export const SYNODIC_MONTH_DAYS = 29.53059;
+export const TROPICAL_YEAR_DAYS = 365.2422;
+/** ~12.37: quantas voltas a Lua dá em torno da Terra enquanto a Terra dá uma no Sol */
+export const LUNAR_MONTHS_PER_YEAR = TROPICAL_YEAR_DAYS / SYNODIC_MONTH_DAYS;
 export const TWO_PI = Math.PI * 2;
 
 export const PHASES = [
   {
     index: 0,
-    name: 'Lua Nova',
-    shortName: 'Nova',
+    key: 'new',
     icon: '🌑',
     targetAngle: 0,
-    targetDay: 0,
-    description: 'A Lua está entre a Terra e o Sol. Sua metade iluminada está voltada para o Sol, então da Terra vemos sua face escura.',
-    funFact: 'Durante a Lua Nova, a Lua passa pelo céu durante o dia junto com o Sol, por isso quase não conseguimos vê-la!',
-    tip: 'Se a Lua passar exatamente em frente ao Sol durante essa fase, acontece um eclipse solar!'
+    targetDay: 0
   },
   {
     index: 1,
-    name: 'Crescente Côncava',
-    shortName: 'Crescente',
+    key: 'waxingCrescent',
     icon: '🌒',
     targetAngle: Math.PI / 4,
-    targetDay: SYNODIC_MONTH_DAYS * (1 / 8),
-    description: 'Uma pontinha iluminada começa a aparecer para nós na Terra, formando um sorriso brilhante no céu da tarde.',
-    funFact: 'Na fase crescente, quem mora no hemisfério Sul enxerga a Lua com formato da letra "C"!',
-    tip: 'Olhe para o oeste logo após o pôr do sol para avistar essa linda casquinha prateada.'
+    targetDay: SYNODIC_MONTH_DAYS * (1 / 8)
   },
   {
     index: 2,
-    name: 'Quarto Crescente',
-    shortName: 'Q. Crescente',
+    key: 'firstQuarter',
     icon: '🌓',
     targetAngle: Math.PI / 2,
-    targetDay: SYNODIC_MONTH_DAYS * (2 / 8),
-    description: 'Vemos exatamente metade do disco lunar iluminado. A Lua completou um quarto de toda a sua viagem ao redor da Terra!',
-    funFact: 'Mesmo parecendo que apenas metade da Lua existe, a outra metade está lá, apenas na sombra.',
-    tip: 'Com um binóculo simples, a linha divisória entre luz e sombra revela montanhas e crateras gigantes!'
+    targetDay: SYNODIC_MONTH_DAYS * (2 / 8)
   },
   {
     index: 3,
-    name: 'Crescente Gibosa',
-    shortName: 'Gibosa Cresc.',
+    key: 'waxingGibbous',
     icon: '🌔',
     targetAngle: (3 * Math.PI) / 4,
-    targetDay: SYNODIC_MONTH_DAYS * (3 / 8),
-    description: 'Mais da metade da Lua já está brilhando para nós! A palavra "gibosa" significa corcunda ou arredondada.',
-    funFact: 'A cada noite que passa, a Lua fica mais brilhante e nasce mais tarde no céu.',
-    tip: 'A Lua já fica visível no céu antes mesmo de o Sol se pôr por completo!'
+    targetDay: SYNODIC_MONTH_DAYS * (3 / 8)
   },
   {
     index: 4,
-    name: 'Lua Cheia',
-    shortName: 'Cheia',
+    key: 'full',
     icon: '🌕',
     targetAngle: Math.PI,
-    targetDay: SYNODIC_MONTH_DAYS * (4 / 8),
-    description: 'A Terra está entre o Sol e a Lua. Toda a face da Lua voltada para nós está 100% iluminada pela luz solar!',
-    funFact: 'A Lua Cheia nasce exatamente no momento em que o Sol se põe no horizonte oposto.',
-    tip: 'A Lua Cheia é tão brilhante que pode até produzir sombras suaves no chão à noite!'
+    targetDay: SYNODIC_MONTH_DAYS * (4 / 8)
   },
   {
     index: 5,
-    name: 'Gibosa Minguante',
-    shortName: 'Gibosa Ming.',
+    key: 'waningGibbous',
     icon: '🌖',
     targetAngle: (5 * Math.PI) / 4,
-    targetDay: SYNODIC_MONTH_DAYS * (5 / 8),
-    description: 'Depois do ápice da Lua Cheia, a área visível iluminada começa lentamente a diminuir dia após dia.',
-    funFact: 'A palavra "minguante" vem do verbo minguar, que significa encolher ou diminuir.',
-    tip: 'Nesta fase, a Lua nasce mais tarde da noite e brilha alta durante a madrugada.'
+    targetDay: SYNODIC_MONTH_DAYS * (5 / 8)
   },
   {
     index: 6,
-    name: 'Quarto Minguante',
-    shortName: 'Q. Minguante',
+    key: 'lastQuarter',
     icon: '🌗',
     targetAngle: (3 * Math.PI) / 2,
-    targetDay: SYNODIC_MONTH_DAYS * (6 / 8),
-    description: 'Vemos novamente metade do disco lunar iluminado, mas agora é a outra metade! Ela completou três quartos da sua órbita.',
-    funFact: 'Nesta fase a Lua nasce por volta da meia-noite e pode ser vista brilhando no céu na manhã seguinte!',
-    tip: 'Você consegue ver o Quarto Minguante de manhã cedo quando vai para a escola!'
+    targetDay: SYNODIC_MONTH_DAYS * (6 / 8)
   },
   {
     index: 7,
-    name: 'Minguante Côncava',
-    shortName: 'Minguante',
+    key: 'waningCrescent',
     icon: '🌘',
     targetAngle: (7 * Math.PI) / 4,
-    targetDay: SYNODIC_MONTH_DAYS * (7 / 8),
-    description: 'Resta apenas um fininho filete prateado antes da Lua dar uma volta completa e recomeçar o ciclo na Lua Nova.',
-    funFact: 'Em apenas 2 ou 3 dias, a Lua estará novamente alinhada com o Sol, iniciando um novo mês lunar.',
-    tip: 'Acorde cedinho antes do nascer do sol para ver essa última fatia brilhante a leste!'
+    targetDay: SYNODIC_MONTH_DAYS * (7 / 8)
   }
 ];
 
@@ -133,7 +107,8 @@ export function getPhaseByIndex(index) {
 }
 
 /**
- * Calcula os dados astronômicos e didáticos para um dado ângulo orbital em radianos
+ * Calcula os dados astronômicos para um dado ângulo orbital em radianos.
+ * Os textos não vêm daqui: a UI resolve `phaseKey` no dicionário do idioma ativo.
  * @param {number} angleInRadians
  * @returns {object}
  */
@@ -159,13 +134,9 @@ export function calculatePhase(angleInRadians) {
     angleDegrees,
     day,
     phaseIndex,
-    phaseName: phaseInfo.name,
-    phaseShortName: phaseInfo.shortName,
+    phaseKey: phaseInfo.key,
     phaseIcon: phaseInfo.icon,
     illuminatedFraction,
-    illuminatedPercentage: Math.round(illuminatedFraction * 100),
-    description: phaseInfo.description,
-    funFact: phaseInfo.funFact,
-    tip: phaseInfo.tip
+    illuminatedPercentage: Math.round(illuminatedFraction * 100)
   };
 }
