@@ -16,57 +16,105 @@
     <!-- Canvas 3D Principal (Three.js) -->
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Topo / HUD de Controle (barra única e compacta) -->
-    <header class="hud-header" id="hud-header">
-      <div class="brand">
-        <span class="brand-icon">🚀</span>
-        <div class="brand-text">
-          <h1 class="brand-title" data-i18n="brand.title">Moon Lab 3D</h1>
-          <p class="brand-subtitle" data-i18n="brand.subtitle">Sun • Earth • Moon — Why does the Moon change in the sky?</p>
-        </div>
-      </div>
-
-      <!-- Controles Principais de Simulação -->
-      <div class="simulation-controls">
-        <button id="btn-play-pause" class="btn-primary" data-i18n-aria-label="controls.playPauseAria" data-i18n-title="controls.playPauseTitle" aria-label="Play or pause the orbit" title="Space">
-          <span class="icon" id="play-pause-icon">⏸️</span>
-          <span id="play-pause-text">Pause</span>
-        </button>
-
-        <div class="speed-selector" role="group" data-i18n-aria-label="controls.speedAria" aria-label="Orbit speed">
-          <button class="btn-speed" data-speed="0.5">0.5x</button>
-          <button class="btn-speed active" data-speed="1.0">1x</button>
-          <button class="btn-speed" data-speed="2.5">2.5x</button>
+    <!-- Pilha do topo-esquerda: o cabeçalho pode quebrar em várias linhas,
+         então a coluna esquerda vem logo abaixo dele no fluxo normal em vez
+         de adivinhar a altura do cabeçalho com um "top" fixo. -->
+    <div class="hud-top-stack">
+      <!-- Topo / HUD de Controle (barra única e compacta) -->
+      <header class="hud-header" id="hud-header">
+        <div class="brand">
+          <span class="brand-icon">🚀</span>
+          <div class="brand-text">
+            <h1 class="brand-title" data-i18n="brand.title">Moon Lab 3D</h1>
+            <p class="brand-subtitle" data-i18n="brand.subtitle">Sun • Earth • Moon — Why does the Moon change in the sky?</p>
+          </div>
         </div>
 
-        <button id="btn-reset" class="btn-secondary" data-i18n-title="controls.resetTitle" title="Go back to the start of the New Moon (R)">
-          <span aria-hidden="true">🔄</span><span class="btn-label" data-i18n="controls.reset">Restart</span>
-        </button>
-      </div>
+        <!-- Controles Principais de Simulação -->
+        <div class="simulation-controls">
+          <button id="btn-play-pause" class="btn-primary" data-i18n-aria-label="controls.playPauseAria" data-i18n-title="controls.playPauseTitle" aria-label="Play or pause the orbit" title="Space">
+            <span class="icon" id="play-pause-icon">⏸️</span>
+            <span id="play-pause-text">Pause</span>
+          </button>
 
-      <!-- Atalhos de Câmera -->
-      <div class="camera-controls">
-        <span class="control-label" data-i18n="camera.label">Focus on:</span>
-        <button class="btn-camera active" data-target="system">🌌<span class="btn-label" data-i18n="camera.system">System</span></button>
-        <button class="btn-camera" data-target="earth-moon">🌍<span class="btn-label" data-i18n="camera.earthMoon">Earth &amp; Moon</span></button>
-        <button class="btn-camera" data-target="moon" data-i18n-title="camera.moonTitle" title="The camera follows the Moon around its orbit, showing the same phase as the Earth viewer">🌕<span class="btn-label" data-i18n="camera.moon">Moon</span></button>
-      </div>
+          <div class="speed-selector" role="group" data-i18n-aria-label="controls.speedAria" aria-label="Orbit speed">
+            <button class="btn-speed" data-speed="0.5">0.5x</button>
+            <button class="btn-speed active" data-speed="1.0">1x</button>
+            <button class="btn-speed" data-speed="2.5">2.5x</button>
+          </div>
 
-      <!-- Camadas didáticas: podem atrapalhar quem quer só olhar o céu -->
-      <div class="layer-controls" role="group" data-i18n-aria-label="layers.groupAria" aria-label="Teaching layers">
-        <span class="control-label" data-i18n="layers.label">Extras:</span>
-        <button id="btn-toggle-beams" class="btn-layer is-on" type="button" aria-pressed="true" data-i18n-title="layers.beamsTitle" title="Show or hide the Sun light rays (B)">
-          <span aria-hidden="true">☀️</span><span class="btn-label" data-i18n="layers.beams">Rays</span>
-        </button>
-        <button id="btn-toggle-orbit" class="btn-layer is-on" type="button" aria-pressed="true" data-i18n-title="layers.orbitTitle" title="Show or hide the path of the Moon orbit (O)">
-          <span aria-hidden="true">⭕</span><span class="btn-label" data-i18n="layers.orbit">Orbit</span>
-        </button>
-        <button id="btn-toggle-earth-orbit" class="btn-layer" type="button" aria-pressed="false" data-i18n-title="layers.earthOrbitTitle" title="Turn on the revolution: Earth travels an ellipse with the Sun at one focus, 1 lap per year, while the Moon makes 12 around Earth (T)">
-          <span aria-hidden="true">🌍</span><span class="btn-label" data-i18n="layers.earthOrbit">Revolution</span>
-        </button>
-      </div>
+          <button id="btn-reset" class="btn-secondary" data-i18n-title="controls.resetTitle" title="Go back to the start of the New Moon (R)">
+            <span aria-hidden="true">🔄</span><span class="btn-label" data-i18n="controls.reset">Restart</span>
+          </button>
+        </div>
 
-    </header>
+        <!-- Atalhos de Câmera -->
+        <div class="camera-controls">
+          <span class="control-label" data-i18n="camera.label">Focus on:</span>
+          <button class="btn-camera active" data-target="system">🌌<span class="btn-label" data-i18n="camera.system">System</span></button>
+          <button class="btn-camera" data-target="earth-moon">🌍<span class="btn-label" data-i18n="camera.earthMoon">Earth &amp; Moon</span></button>
+          <button class="btn-camera" data-target="moon" data-i18n-title="camera.moonTitle" title="The camera follows the Moon around its orbit, showing the same phase as the Earth viewer">🌕<span class="btn-label" data-i18n="camera.moon">Moon</span></button>
+        </div>
+
+        <!-- Camadas didáticas: podem atrapalhar quem quer só olhar o céu -->
+        <div class="layer-controls" role="group" data-i18n-aria-label="layers.groupAria" aria-label="Teaching layers">
+          <span class="control-label" data-i18n="layers.label">Extras:</span>
+          <button id="btn-toggle-beams" class="btn-layer is-on" type="button" aria-pressed="true" data-i18n-title="layers.beamsTitle" title="Show or hide the Sun light rays (B)">
+            <span aria-hidden="true">☀️</span><span class="btn-label" data-i18n="layers.beams">Rays</span>
+          </button>
+          <button id="btn-toggle-orbit" class="btn-layer is-on" type="button" aria-pressed="true" data-i18n-title="layers.orbitTitle" title="Show or hide the path of the Moon orbit (O)">
+            <span aria-hidden="true">⭕</span><span class="btn-label" data-i18n="layers.orbit">Orbit</span>
+          </button>
+          <button id="btn-toggle-earth-orbit" class="btn-layer" type="button" aria-pressed="false" data-i18n-title="layers.earthOrbitTitle" title="Turn on the revolution: Earth travels an ellipse with the Sun at one focus, 1 lap per year, while the Moon makes 12 around Earth (T)">
+            <span aria-hidden="true">🌍</span><span class="btn-label" data-i18n="layers.earthOrbit">Revolution</span>
+          </button>
+        </div>
+
+      </header>
+
+      <!-- Abaixo do cabeçalho: coluna esquerda e visor da Terra dividem a
+           mesma linha, então ambos descem junto quando o cabeçalho quebra. -->
+      <div class="hud-below-header">
+        <!-- Coluna esquerda: dica de navegação + indicador da órbita da Terra -->
+        <div class="hud-left-column" id="hud-left-column">
+          <!-- Dica de Navegação 3D -->
+          <div class="orbit-hint" id="orbit-hint">
+            <span data-i18n-html="hint.text">🖱️ Drag to spin • mouse wheel zooms • keys: <kbd>space</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>1-8</kbd> <kbd>B</kbd> <kbd>O</kbd> <kbd>H</kbd></span>
+          </div>
+
+          <!-- Distância real Terra-Sol: só aparece com a translação ligada -->
+          <aside class="orbit-readout" id="earth-orbit-readout" hidden>
+            <p class="orbit-readout-title" data-i18n="orbitReadout.title">🌍 Distance to the Sun</p>
+            <p class="orbit-readout-distance" id="orbit-distance">147.1 million km</p>
+            <p class="orbit-readout-date" id="orbit-date">around January 4</p>
+            <p class="orbit-readout-marker" id="orbit-marker" hidden></p>
+            <p class="orbit-readout-note" data-i18n="orbitReadout.note">The orbit is an ellipse with the Sun at one focus — but so barely squashed that it looks like a circle.</p>
+          </aside>
+        </div>
+
+        <!-- Visor Telescópio "Como Vemos da Terra" (Visão Dupla) -->
+        <aside class="earth-view-widget" id="earth-view-widget">
+          <div class="widget-header">
+            <div class="widget-title-group">
+              <span class="telescope-icon">🔭</span>
+              <span class="widget-title" data-i18n="telescope.title">View from Earth</span>
+            </div>
+            <span class="illumination-badge" id="illumination-badge">0% Lit</span>
+            <span class="moon-distance-badge" id="moon-distance-badge">📏 383,000 km</span>
+          </div>
+
+          <div class="telescope-lens-frame">
+            <canvas id="telescope-canvas" class="telescope-viewport" width="190" height="190"></canvas>
+            <div class="telescope-crosshair"></div>
+            <div class="telescope-glare"></div>
+          </div>
+
+          <div class="telescope-footer">
+            <p class="earth-pov-tag" id="earth-pov-tag">🔭 View from the Earth sky</p>
+          </div>
+        </aside>
+      </div>
+    </div>
 
     <!-- Canto fixo do topo: idioma e modo foco. Ficam fora do fluxo do
          cabeçalho para nunca disputar largura com os grupos de controle. -->
@@ -84,44 +132,6 @@
       </button>
     </div>
 
-    <!-- Visor Telescópio "Como Vemos da Terra" (Visão Dupla) -->
-    <aside class="earth-view-widget" id="earth-view-widget">
-      <div class="widget-header">
-        <div class="widget-title-group">
-          <span class="telescope-icon">🔭</span>
-          <span class="widget-title" data-i18n="telescope.title">View from Earth</span>
-        </div>
-        <span class="illumination-badge" id="illumination-badge">0% Lit</span>
-        <span class="moon-distance-badge" id="moon-distance-badge">📏 383,000 km</span>
-      </div>
-
-      <div class="telescope-lens-frame">
-        <canvas id="telescope-canvas" class="telescope-viewport" width="190" height="190"></canvas>
-        <div class="telescope-crosshair"></div>
-        <div class="telescope-glare"></div>
-      </div>
-
-      <div class="telescope-footer">
-        <p class="earth-pov-tag" id="earth-pov-tag">🔭 View from the Earth sky</p>
-      </div>
-    </aside>
-
-    <!-- Coluna esquerda: dica de navegação + indicador da órbita da Terra -->
-    <div class="hud-left-column" id="hud-left-column">
-      <!-- Dica de Navegação 3D -->
-      <div class="orbit-hint" id="orbit-hint">
-        <span data-i18n-html="hint.text">🖱️ Drag to spin • mouse wheel zooms • keys: <kbd>space</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>1-8</kbd> <kbd>B</kbd> <kbd>O</kbd> <kbd>H</kbd></span>
-      </div>
-
-      <!-- Distância real Terra-Sol: só aparece com a translação ligada -->
-      <aside class="orbit-readout" id="earth-orbit-readout" hidden>
-        <p class="orbit-readout-title" data-i18n="orbitReadout.title">🌍 Distance to the Sun</p>
-        <p class="orbit-readout-distance" id="orbit-distance">147.1 million km</p>
-        <p class="orbit-readout-date" id="orbit-date">around January 4</p>
-        <p class="orbit-readout-marker" id="orbit-marker" hidden></p>
-        <p class="orbit-readout-note" data-i18n="orbitReadout.note">The orbit is an ellipse with the Sun at one focus — but so barely squashed that it looks like a circle.</p>
-      </aside>
-    </div>
 
     <!-- Barra Inferior: console único com as 8 fases + linha do tempo -->
     <footer class="hud-footer" id="hud-footer">

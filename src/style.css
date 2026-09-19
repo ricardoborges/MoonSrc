@@ -68,22 +68,49 @@ html, body {
 /* =========================================================
    1. CABEÇALHO / TOPO DO HUD (barra única e baixa)
    ========================================================= */
-.hud-header {
+/* Pilha do topo-esquerda: cabeçalho + coluna esquerda empilhados no fluxo
+   normal. Como o cabeçalho quebra em várias linhas quando falta largura, a
+   coluna precisa descer junto — por isso ela não tem mais um "top" fixo. */
+.hud-top-stack {
   position: absolute;
   top: var(--hud-top);
   left: var(--hud-edge);
-  right: calc(var(--hud-edge) + 90px); /* espaço dos botões fixos do canto */
+  right: var(--hud-edge);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  /* limita a pilha à área útil e deixa a coluna rolar antes de invadir o rodapé */
+  max-height: calc(100% - var(--hud-top) - 210px);
+  pointer-events: none; /* permite clicar no 3D através dos vãos */
+}
+
+.hud-header {
+  width: 100%;
+  flex: 0 0 auto;
+  padding-right: 90px; /* espaço dos botões fixos do canto (idioma + modo foco) */
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap; /* falta espaço: quebra a linha em vez de invadir o canto */
   gap: 10px;
-  z-index: 10;
-  pointer-events: none; /* permite clicar no 3D através dos vãos */
+  pointer-events: none;
 }
 
 .hud-header > * {
   pointer-events: auto;
+}
+
+/* Coluna esquerda e visor da Terra: mesma linha, logo abaixo do cabeçalho */
+.hud-below-header {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  pointer-events: none;
 }
 
 .brand {
@@ -285,17 +312,16 @@ button:focus-visible {
    2. VISOR DO TELESCÓPIO "COMO VEMOS DA TERRA"
    ========================================================= */
 .earth-view-widget {
-  position: absolute;
-  top: 74px;
-  right: var(--hud-edge);
+  flex: 0 0 auto;
+  margin-left: auto; /* encostado à direita mesmo quando a coluna esquerda some */
   width: 240px;
+  pointer-events: auto;
   background: var(--color-card-bg);
   backdrop-filter: blur(16px);
   border: 1px solid var(--color-card-border);
   border-radius: var(--radius-lg);
   padding: 12px;
   box-shadow: var(--shadow-hud);
-  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -434,10 +460,8 @@ button:focus-visible {
    3. COLUNA ESQUERDA: DICA DE NAVEGAÇÃO + ÓRBITA DA TERRA
    ========================================================= */
 .hud-left-column {
-  position: absolute;
-  top: 74px;
-  left: var(--hud-edge);
-  z-index: 5;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -962,12 +986,14 @@ body.hud-hidden .hud-left-column {
     gap: 8px;
   }
   .brand-title { font-size: 0.95rem; }
+  /* Celular: o visor sai da linha do cabeçalho e ancora acima do rodapé */
   .earth-view-widget {
-    top: auto;
+    position: fixed;
     bottom: 200px;
     right: 10px;
     width: 140px;
     padding: 8px;
+    margin-left: 0;
   }
   .earth-view-widget .telescope-footer { display: none; }
   .orbit-hint { display: none; }

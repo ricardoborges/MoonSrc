@@ -224,6 +224,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const delta = Math.min(clock.getDelta(), 0.1); // limita delta para evitar saltos
 
+    // O tempo só corre quando a simulação avança: pausado, a Terra para de girar
+    const simDelta = isPlaying || targetAngle !== null ? delta : 0;
+
     // Transição suave quando a criança clica em um botão de fase
     if (targetAngle !== null) {
       // Calcula o menor caminho angular no círculo
@@ -248,7 +251,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // Renderiza os dois viewports
-    sceneManager.render(delta);
+    sceneManager.render(delta, simDelta);
 
     // Distâncias do quadro atual (os módulos só tocam no DOM quando mudam)
     earthOrbitReadout.update(sceneManager.getEarthOrbitState());

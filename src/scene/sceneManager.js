@@ -503,8 +503,9 @@ export class SceneManager {
   /**
    * Renderiza a cena com Visão Dupla (Espaço + Telescópio da Terra)
    * @param {number} delta segundos desde o último quadro
+   * @param {number} spinDelta segundos de tempo simulado (0 quando pausado)
    */
-  render(delta = 0) {
+  render(delta = 0, spinDelta = delta) {
     this.updateEarthOrbit(delta);
 
     // Posições no mundo (mudam quando a Terra translada)
@@ -523,10 +524,10 @@ export class SceneManager {
     this.updateFollow();
     this.controls.update();
 
-    // Rotação própria do Sol e da Terra: independente do tempo do ciclo lunar,
-    // por isso usa delta (não depende da taxa de quadros nem da pausa da órbita)
-    this.bodies.sunMesh.rotation.y += SUN_SPIN_PER_SECOND * delta;
-    this.bodies.earthMesh.rotation.y += EARTH_SPIN_PER_SECOND * delta;
+    // Rotação própria do Sol e da Terra: acompanha o tempo da simulação, então
+    // congela junto com as órbitas quando a criança pausa
+    this.bodies.sunMesh.rotation.y += SUN_SPIN_PER_SECOND * spinDelta;
+    this.bodies.earthMesh.rotation.y += EARTH_SPIN_PER_SECOND * spinDelta;
 
     // Interpolação suave para transições de foco de câmera
     if (this.targetCameraPos && this.targetCameraLookAt) {
