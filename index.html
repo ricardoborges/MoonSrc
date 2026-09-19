@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!-- lang, título e textos são reescritos no carregamento pelo módulo src/i18n -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moon Space Lab 3D — Discover the Phases of the Moon!</title>
+  <meta name="description" content="Interactive 3D simulator of the Sun, Earth and Moon system where kids learn the phases of the Moon in a fun, visual way." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="/MoonSrc/assets/index-CdgzpnkE.js"></script>
+  <link rel="stylesheet" crossorigin href="/MoonSrc/assets/index-Cfz3EDbE.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Canvas 3D Principal (Three.js) -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Topo / HUD de Controle (barra única e compacta) -->
+    <header class="hud-header" id="hud-header">
+      <div class="brand">
+        <span class="brand-icon">🚀</span>
+        <div class="brand-text">
+          <h1 class="brand-title" data-i18n="brand.title">Moon Lab 3D</h1>
+          <p class="brand-subtitle" data-i18n="brand.subtitle">Sun • Earth • Moon — Why does the Moon change in the sky?</p>
+        </div>
+      </div>
+
+      <!-- Controles Principais de Simulação -->
+      <div class="simulation-controls">
+        <button id="btn-play-pause" class="btn-primary" data-i18n-aria-label="controls.playPauseAria" data-i18n-title="controls.playPauseTitle" aria-label="Play or pause the orbit" title="Space">
+          <span class="icon" id="play-pause-icon">⏸️</span>
+          <span id="play-pause-text">Pause</span>
+        </button>
+
+        <div class="speed-selector" role="group" data-i18n-aria-label="controls.speedAria" aria-label="Orbit speed">
+          <button class="btn-speed" data-speed="0.5">0.5x</button>
+          <button class="btn-speed active" data-speed="1.0">1x</button>
+          <button class="btn-speed" data-speed="2.5">2.5x</button>
+        </div>
+
+        <button id="btn-reset" class="btn-secondary" data-i18n-title="controls.resetTitle" title="Go back to the start of the New Moon (R)">
+          <span aria-hidden="true">🔄</span><span class="btn-label" data-i18n="controls.reset">Restart</span>
+        </button>
+      </div>
+
+      <!-- Atalhos de Câmera -->
+      <div class="camera-controls">
+        <span class="control-label" data-i18n="camera.label">Focus on:</span>
+        <button class="btn-camera active" data-target="system">🌌<span class="btn-label" data-i18n="camera.system">System</span></button>
+        <button class="btn-camera" data-target="earth-moon">🌍<span class="btn-label" data-i18n="camera.earthMoon">Earth &amp; Moon</span></button>
+        <button class="btn-camera" data-target="moon" data-i18n-title="camera.moonTitle" title="The camera follows the Moon around its orbit, showing the same phase as the Earth viewer">🌕<span class="btn-label" data-i18n="camera.moon">Moon</span></button>
+      </div>
+
+      <!-- Camadas didáticas: podem atrapalhar quem quer só olhar o céu -->
+      <div class="layer-controls" role="group" data-i18n-aria-label="layers.groupAria" aria-label="Teaching layers">
+        <span class="control-label" data-i18n="layers.label">Extras:</span>
+        <button id="btn-toggle-beams" class="btn-layer is-on" type="button" aria-pressed="true" data-i18n-title="layers.beamsTitle" title="Show or hide the Sun light rays (B)">
+          <span aria-hidden="true">☀️</span><span class="btn-label" data-i18n="layers.beams">Rays</span>
+        </button>
+        <button id="btn-toggle-orbit" class="btn-layer is-on" type="button" aria-pressed="true" data-i18n-title="layers.orbitTitle" title="Show or hide the path of the Moon orbit (O)">
+          <span aria-hidden="true">⭕</span><span class="btn-label" data-i18n="layers.orbit">Orbit</span>
+        </button>
+        <button id="btn-toggle-earth-orbit" class="btn-layer" type="button" aria-pressed="false" data-i18n-title="layers.earthOrbitTitle" title="Turn on the revolution: Earth travels an ellipse with the Sun at one focus, 1 lap per year, while the Moon makes 12 around Earth (T)">
+          <span aria-hidden="true">🌍</span><span class="btn-label" data-i18n="layers.earthOrbit">Revolution</span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- Canto fixo do topo: idioma e modo foco. Ficam fora do fluxo do
+         cabeçalho para nunca disputar largura com os grupos de controle. -->
+    <div class="hud-corner">
+      <!-- Idioma (inglês padrão; quem está no Brasil já abre em PT).
+           Mostra o idioma atual e leva para o outro — o rótulo vem do JS. -->
+      <button id="btn-language" class="corner-btn lang-btn" type="button">
+        <span class="lang-code" id="language-code">EN</span>
+      </button>
+
+      <!-- Único controle que nunca se esconde: liga/desliga todo o resto do HUD -->
+      <button id="btn-toggle-hud" class="corner-btn hud-toggle" type="button" aria-pressed="false" data-i18n-title="hud.hideTitle" title="Hide the panels and see only space (H)">
+        <span class="hud-toggle-icon" id="hud-toggle-icon" aria-hidden="true">⛶</span>
+        <span class="sr-only" id="hud-toggle-label">Hide panels</span>
+      </button>
+    </div>
+
+    <!-- Visor Telescópio "Como Vemos da Terra" (Visão Dupla) -->
+    <aside class="earth-view-widget" id="earth-view-widget">
+      <div class="widget-header">
+        <div class="widget-title-group">
+          <span class="telescope-icon">🔭</span>
+          <span class="widget-title" data-i18n="telescope.title">View from Earth</span>
+        </div>
+        <span class="illumination-badge" id="illumination-badge">0% Lit</span>
+        <span class="moon-distance-badge" id="moon-distance-badge">📏 383,000 km</span>
+      </div>
+
+      <div class="telescope-lens-frame">
+        <canvas id="telescope-canvas" class="telescope-viewport" width="190" height="190"></canvas>
+        <div class="telescope-crosshair"></div>
+        <div class="telescope-glare"></div>
+      </div>
+
+      <div class="telescope-footer">
+        <p class="earth-pov-tag" id="earth-pov-tag">🔭 View from the Earth sky</p>
+      </div>
+    </aside>
+
+    <!-- Coluna esquerda: dica de navegação + indicador da órbita da Terra -->
+    <div class="hud-left-column" id="hud-left-column">
+      <!-- Dica de Navegação 3D -->
+      <div class="orbit-hint" id="orbit-hint">
+        <span data-i18n-html="hint.text">🖱️ Drag to spin • mouse wheel zooms • keys: <kbd>space</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>1-8</kbd> <kbd>B</kbd> <kbd>O</kbd> <kbd>H</kbd></span>
+      </div>
+
+      <!-- Distância real Terra-Sol: só aparece com a translação ligada -->
+      <aside class="orbit-readout" id="earth-orbit-readout" hidden>
+        <p class="orbit-readout-title" data-i18n="orbitReadout.title">🌍 Distance to the Sun</p>
+        <p class="orbit-readout-distance" id="orbit-distance">147.1 million km</p>
+        <p class="orbit-readout-date" id="orbit-date">around January 4</p>
+        <p class="orbit-readout-marker" id="orbit-marker" hidden></p>
+        <p class="orbit-readout-note" data-i18n="orbitReadout.note">The orbit is an ellipse with the Sun at one focus — but so barely squashed that it looks like a circle.</p>
+      </aside>
+    </div>
+
+    <!-- Barra Inferior: console único com as 8 fases + linha do tempo -->
+    <footer class="hud-footer" id="hud-footer">
+      <!-- Puxador: recolhe a barra inteira para baixo -->
+      <button id="btn-collapse-console" class="console-handle" type="button" aria-expanded="true" aria-controls="console-panel" data-i18n-title="console.collapseTitle" title="Collapse the bottom bar (C)">
+        <span class="console-handle-icon" id="console-handle-icon" aria-hidden="true">▾</span>
+        <span class="sr-only" id="console-handle-label">Collapse the bottom bar</span>
+      </button>
+
+      <div class="console" id="console-panel">
+        <!-- Seletor Rápido das 8 Fases -->
+        <div class="phases-shelf" id="phases-shelf" role="tablist" data-i18n-aria-label="timeline.shelfAria" aria-label="The 8 Phases of the Moon">
+          <!-- Preenchido dinamicamente via JS com as 8 fases -->
+        </div>
+
+        <!-- Linha do tempo contínua do ciclo lunar -->
+        <div class="timeline-row">
+          <div class="phase-highlight">
+            <span class="phase-current-icon" id="current-phase-icon">🌑</span>
+            <span class="phase-current-text">
+              <span class="phase-current-name" id="current-phase-name">New Moon</span>
+              <span class="cycle-day-counter">
+                <span id="cycle-day-value">Day 0.0</span> <span id="cycle-day-total" data-i18n="timeline.ofCycle">of 29.5 (1 lunar month)</span>
+              </span>
+            </span>
+          </div>
+
+          <input type="range" id="cycle-slider" min="0" max="29.53" step="0.05" value="0" data-i18n-aria-label="timeline.sliderAria" aria-label="Day of the lunar cycle" />
+
+          <button id="btn-toggle-lesson" class="lesson-toggle" type="button" aria-expanded="false" aria-controls="educational-card" data-i18n-title="lesson.toggleTitle" title="Phase explanation (L)">
+            <span class="lesson-toggle-icon" aria-hidden="true">?</span>
+            <span class="btn-label" id="lesson-toggle-text">Learn</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Pedagógico para Crianças (6 a 10 anos) — flutua acima do console, sem empurrá-lo -->
+      <aside class="educational-card" id="educational-card" hidden aria-labelledby="card-badge">
+        <div class="card-head">
+          <span class="card-badge" id="card-badge">✨ Discovering the Sky</span>
+          <button id="btn-close-lesson" class="card-close" type="button" data-i18n-aria-label="lesson.closeAria" aria-label="Close explanation">✕</button>
+        </div>
+        <div class="card-content">
+          <div class="card-col explanation-col">
+            <h2 class="card-section-title" data-i18n="lesson.whatsHappening">What is going on?</h2>
+            <p id="phase-explanation" class="card-text">Loading explanation...</p>
+          </div>
+          <div class="card-col tip-col">
+            <h2 class="card-section-title" data-i18n="lesson.tipTitle">💡 Junior Astronomer Tip</h2>
+            <p id="phase-tip" class="card-text">Tip...</p>
+          </div>
+          <div class="card-col fun-fact-col">
+            <h2 class="card-section-title" data-i18n="lesson.funFactTitle">🚀 Space Fun Fact</h2>
+            <p id="phase-fun-fact" class="card-text">Fun fact...</p>
+          </div>
+        </div>
+      </aside>
+    </footer>
+  </div>
+
+</body>
+</html>
